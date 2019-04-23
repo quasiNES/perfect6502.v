@@ -15,25 +15,32 @@ module Perfect6502 (
     inout [7:0] data
 );
 
-    wire [{{ netlist.nodesCount - 1 }}:0] nodes;
+    wire [{{ netlist.nodeIsPulledUp|length - 1 }}:0] nodes;
+
+    {% for isPullUp in netlist.nodeIsPulledUp -%}
+    {% if isPullUp != 0 -%}
+    pullup (nodes[{{ loop.index0 }}]);
+    {% endif %}
+    {% endfor %}
 
     {% for t in netlist.transistors -%}
-    nmos (nodes[{{ t.drain }}], nodes[{{ t.source }}],  nodes[{{ t.gate }}]);
+    tranif1 (nodes[{{ t.drain }}], nodes[{{ t.source }}],  nodes[{{ t.gate }}]);
     {% endfor %}
 
     supply0 gnd;
     supply1 vcc;
-    assign nodes[{{ netlist.NamedNode.vss }}] = gnd;
-    assign nodes[{{ netlist.NamedNode.vcc }}] = vcc;
+    assign nodes[{{ netlist.NamedNode.vss }}] = 1'b0;
+    assign nodes[{{ netlist.NamedNode.vcc }}] = 1'b1;
 
-    assign reset  = nodes[{{ netlist.NamedNode.res }}],
-           ready  = nodes[{{ netlist.NamedNode.rdy }}],
-           clock0 = nodes[{{ netlist.NamedNode.clk0 }}],
+
+    assign nodes[{{ netlist.NamedNode.res }}] = reset,
+           nodes[{{ netlist.NamedNode.rdy }}] = ready,
+           nodes[{{ netlist.NamedNode.clk0 }}] = clock0,
            clock1 = nodes[{{ netlist.NamedNode.clk1out }}],
            clock2 = nodes[{{ netlist.NamedNode.clk2out }}],
-           irq    = nodes[{{ netlist.NamedNode.irq }}], 
-           nmi    = nodes[{{ netlist.NamedNode.nmi }}],
-           so     = nodes[{{ netlist.NamedNode.so }}];
+           nodes[{{ netlist.NamedNode.irq }}] = irq, 
+           nodes[{{ netlist.NamedNode.nmi }}] = nmi,
+           nodes[{{ netlist.NamedNode.so }}] = so;
      //      sync   =  nodes[];
 
      assign readNotWrite = nodes[{{ netlist.NamedNode.rw }}] ;

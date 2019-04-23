@@ -16,10 +16,10 @@ module testbench;
         .sync(),
         .readNotWrite(),
         .address(),
-        .data(data)
+        .data()
     );
 
-    assign data = perfect6502.readNotWrite ? 8'b0 : 8'hzz;
+    // assign data = perfect6502.readNotWrite ? 8'b0 : 8'hzz;
 
     initial begin
         forever begin
@@ -30,7 +30,7 @@ module testbench;
 
     initial begin
         $dumpfile("perfect.vcd");
-	$dumpvars(1, clock0, reset, perfect6502.clock1, perfect6502.clock2, perfect6502.address);
+	$dumpvars(0); //, clock0, reset, perfect6502.clock1, perfect6502.clock2, perfect6502.address);
         reset = 1'b0; #20;
 	reset = 1'b1; #10;
 	$finish;
